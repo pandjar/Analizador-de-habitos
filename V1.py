@@ -5,7 +5,6 @@ Materia: Programación Orientada a Objetos
 Versión: Interactiva con entrada de usuario
 Creador: Hernandez Castro Jared
 """
-
 import json
 import datetime
 from abc import ABC, abstractmethod

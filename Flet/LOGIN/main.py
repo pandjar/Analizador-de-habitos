@@ -1,15 +1,11 @@
 import flet as ft
 import sqlite3
 import os
-
 # Ruta de la base de datos
 DB_PATH = r"C:\Users\Jared Hernández\OneDrive\Escritorio\sqlite-tools-win-x64-3500400\User.db"
 # Ruta de imágenes
 IMG_PATH = r"C:\GIT\Git\p1\Flet\Imagenes"
-
-# --------------------------------------------------
 # Crear tabla si no existe
-# --------------------------------------------------
 def inicializar_db():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -28,11 +24,7 @@ def inicializar_db():
 
 # Llamar para crear tabla al iniciar
 inicializar_db()
-
-
-# --------------------------------------------------
 # Función para insertar usuarios en la base de datos
-# --------------------------------------------------
 def registrar_usuario(nombre, apellido, usuarioid, correo, contrasena):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -47,10 +39,7 @@ def registrar_usuario(nombre, apellido, usuarioid, correo, contrasena):
     conn.commit()
     conn.close()
     return True
-
-# --------------------------------------------------
 # Función para validar inicio de sesión
-# --------------------------------------------------
 def validar_usuario(correo, contrasena):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -58,18 +47,12 @@ def validar_usuario(correo, contrasena):
     user = cursor.fetchone()
     conn.close()
     return user is not None
-
-# --------------------------------------------------
 # Pantallas de la app
-# --------------------------------------------------
 def main(page: ft.Page):
     page.title = "Habit Login"
     page.bgcolor = ft.Colors.WHITE
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
-
-    # ----------------------------
     # Pantalla 3: Inicio de sesión
-    # ----------------------------
     def pantalla_inicio():
         correo = ft.TextField(label="correo@electrónico.com", width=300)
         btn_continuar = ft.ElevatedButton(
@@ -92,10 +75,7 @@ def main(page: ft.Page):
         )
         page.clean()
         page.add(contenido)
-
-    # ---------------------------------
     # Pantalla 1: Registro de usuario
-    # ---------------------------------
     def mostrar_registro():
         nombre = ft.TextField(label="Nombre(s)", width=300)
         apellido = ft.TextField(label="Apellidos", width=300)
@@ -144,10 +124,7 @@ def main(page: ft.Page):
         )
         page.clean()
         page.add(contenido)
-
-    # ---------------------------------
     # Pantalla 2: Mensaje de éxito
-    # ---------------------------------
     def mostrar_exito():
         contenido = ft.Column(
             [
@@ -161,10 +138,7 @@ def main(page: ft.Page):
         )
         page.clean()
         page.add(contenido)
-
-    # ---------------------------------
     # Pantalla 4: Login con contraseña
-    # ---------------------------------
     def mostrar_login_contra():
         correo = ft.TextField(label="Correo electrónico", width=300)
         contrasena = ft.TextField(label="Contraseña", password=True, can_reveal_password=True, width=300)

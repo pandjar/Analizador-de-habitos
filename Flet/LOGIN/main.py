@@ -1,70 +1,100 @@
 import flet as ft
 import sqlite3
 import os
-# Ruta de la base de datos
-DB_PATH = r"C:\Users\Jared Hernández\OneDrive\Escritorio\sqlite-tools-win-x64-3500400\User.db"
-# Ruta de imágenes
-IMG_PATH = r"C:\GIT\Git\p1\Flet\Imagenes"
-# Crear tabla si no existe
-def inicializar_db():
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS User (
-            ID INTEGER PRIMARY KEY AUTOINCREMENT,
-            Nombre TEXT,
-            Apellido TEXT,
-            UsuarioID TEXT,
-            Correo TEXT,
-            Contraseña TEXT
-        )
-    """)
-    conn.commit()
-    conn.close()
 
-# Llamar para crear tabla al iniciar
-inicializar_db()
-# Función para insertar usuarios en la base de datos
-def registrar_usuario(nombre, apellido, usuarioid, correo, contrasena):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM User WHERE UsuarioID=? OR Correo=?", (usuarioid, correo))
-    if cursor.fetchone():
+# Clase para manejar la base de datos
+class DatabaseManager:
+    def __init__(self):
+        self.db_path = os.path.join(os.path.dirname(__file__), "User.db")
+        self.inicializar_db()
+
+    def inicializar_db(self):
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS User (
+                ID INTEGER PRIMARY KEY AUTOINCREMENT,
+                Nombre TEXT,
+                Apellido TEXT,
+                UsuarioID TEXT,
+                Correo TEXT,
+                Contraseña TEXT
+            )
+        """)
+        conn.commit()
         conn.close()
-        return False  # Ya existe
-    cursor.execute(
-        "INSERT INTO User (Nombre, Apellido, UsuarioID, Correo, Contraseña) VALUES (?, ?, ?, ?, ?)",
-        (nombre, apellido, usuarioid, correo, contrasena),
-    )
-    conn.commit()
-    conn.close()
-    return True
-# Función para validar inicio de sesión
-def validar_usuario(correo, contrasena):
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM User WHERE Correo=? AND Contraseña=?", (correo, contrasena))
-    user = cursor.fetchone()
-    conn.close()
-    return user is not None
-# Pantallas de la app
-def main(page: ft.Page):
-    page.title = "Habit Login"
-    page.bgcolor = ft.Colors.WHITE
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
-    # Pantalla 3: Inicio de sesión
-    def pantalla_inicio():
-        correo = ft.TextField(label="correo@electrónico.com", width=300)
-        btn_continuar = ft.ElevatedButton(
-            "Continuar", bgcolor="black", color="white", on_click=lambda e: mostrar_login_contra()
+
+    def registrar_usuario(self, nombre, apellido, usuarioid, correo, contrasena):
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM User WHERE UsuarioID=? OR Correo=?", (usuarioid, correo))
+        if cursor.fetchone():
+            conn.close()
+            return False
+        cursor.execute(
+            "INSERT INTO User (Nombre, Apellido, UsuarioID, Correo, Contraseña) VALUES (?, ?, ?, ?, ?)",
+            (nombre, apellido, usuarioid, correo, contrasena)
         )
-        registrar_link = ft.TextButton("¿No tienes una cuenta? Regístrate", on_click=lambda e: mostrar_registro())
+        conn.commit()
+        conn.close()
+        return True
+
+    def validar_usuario(self, correo, contrasena):
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM User WHERE Correo=? AND Contraseña=?", (correo, contrasena))
+        user = cursor.fetchone()
+        conn.close()
+        return user is not None
+
+
+# Clase principal de la app
+class HabitApp:
+    def __init__(self, page: ft.Page):
+        self.page = page
+        self.page.title = "Habit Login"
+        self.page.bgcolor = ft.Colors.WHITE
+        self.page.vertical_alignment = ft.MainAxisAlignment.CENTER
+        self.page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+
+        # Configuración de ventana (simula celular)
+        self.page.window_width = 400
+        self.page.window_height = 800
+        self.page.window_resizable = False
+
+        # Rutas
+        self.img_path = os.path.join(os.path.dirname(__file__), "Imagenes")
+        self.db = DatabaseManager()
+
+        # Verificar ruta de imagen
+        print("Ruta de imagen esperada:", os.path.join(self.img_path, "Imagen1.png"))
+        print("Existe imagen:", os.path.exists(os.path.join(self.img_path, "Imagen1.png")))
+
+        # Inicia en pantalla de inicio
+        self.pantalla_inicio()
+
+    
+    # Pantallas
+
+    def pantalla_inicio(self):
+        correo = ft.TextField(label="correo@electrónico.com", width=300, color="black")
+        btn_continuar = ft.ElevatedButton(
+            "Continuar", bgcolor="black", color="white", on_click=lambda e: self.mostrar_login_contra()
+        )
+        registrar_link = ft.TextButton(
+            "¿No tienes una cuenta? Regístrate",
+            on_click=lambda e: self.mostrar_registro(),
+            style=ft.ButtonStyle(color="blue"),
+        )
 
         contenido = ft.Column(
             [
-                ft.Image(src=os.path.join(IMG_PATH, "Imagen3.png"), width=150, height=150),
-                ft.Text("Crea una cuenta", size=20, weight=ft.FontWeight.BOLD),
-                ft.Text("Ingresa tu correo electrónico para registrarte en esta aplicación"),
+                ft.Image(src=os.path.join(self.img_path, "Imagen3.png"), width=150, height=150),
+                ft.Text("Crea una cuenta", size=20, weight=ft.FontWeight.BOLD, color="black"),
+                ft.Text(
+                    "Ingresa tu correo electrónico para registrarte en esta aplicación",
+                    color="black"
+                ),
                 correo,
                 btn_continuar,
                 registrar_link,
@@ -73,38 +103,39 @@ def main(page: ft.Page):
             alignment=ft.MainAxisAlignment.CENTER,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         )
-        page.clean()
-        page.add(contenido)
-    # Pantalla 1: Registro de usuario
-    def mostrar_registro():
-        nombre = ft.TextField(label="Nombre(s)", width=300)
-        apellido = ft.TextField(label="Apellidos", width=300)
-        usuarioid = ft.TextField(label="Nombre de usuario (id)", width=300)
-        correo = ft.TextField(label="Correo", width=300)
-        contrasena = ft.TextField(label="Contraseña", password=True, can_reveal_password=True, width=300)
-        confirmar = ft.TextField(label="Confirmar Contraseña", password=True, can_reveal_password=True, width=300)
+
+        self.page.clean()
+        self.page.add(contenido)
+
+    def mostrar_registro(self):
+        nombre = ft.TextField(label="Nombre(s)", width=300, color="black")
+        apellido = ft.TextField(label="Apellidos", width=300, color="black")
+        usuarioid = ft.TextField(label="Nombre de usuario (id)", width=300, color="black")
+        correo = ft.TextField(label="Correo", width=300, color="black")
+        contrasena = ft.TextField(label="Contraseña", password=True, can_reveal_password=True, width=300, color="black")
+        confirmar = ft.TextField(label="Confirmar Contraseña", password=True, can_reveal_password=True, width=300, color="black")
         mensaje = ft.Text("", color="red")
 
         def registrar_click(e):
             if not all([nombre.value, apellido.value, usuarioid.value, correo.value, contrasena.value, confirmar.value]):
                 mensaje.value = "Por favor completa todos los campos."
-                page.update()
+                self.page.update()
                 return
             if contrasena.value != confirmar.value:
                 mensaje.value = "Las contraseñas no coinciden."
-                page.update()
+                self.page.update()
                 return
-            if registrar_usuario(nombre.value, apellido.value, usuarioid.value, correo.value, contrasena.value):
-                mostrar_exito()
+            if self.db.registrar_usuario(nombre.value, apellido.value, usuarioid.value, correo.value, contrasena.value):
+                self.mostrar_exito()
             else:
                 mensaje.value = "El usuario o correo ya existe."
-                page.update()
+                self.page.update()
 
         contenido = ft.Column(
             [
-                ft.Text("Hola Soy Habit", size=20, weight=ft.FontWeight.BOLD),
-                ft.Text("¿Listo para programar tus hábitos y optimizar tu día?"),
-                ft.Image(src=os.path.join(IMG_PATH, "Imagen1.png"), width=100, height=100),
+                ft.Text("Hola Soy Habit", size=20, weight=ft.FontWeight.BOLD, color="black"),
+                ft.Text("¿Listo para programar tus hábitos y optimizar tu día?", color="black"),
+                ft.Image(src=os.path.join(self.img_path, "Imagen1.png"), width=100, height=100),
                 nombre,
                 apellido,
                 usuarioid,
@@ -115,6 +146,7 @@ def main(page: ft.Page):
                     "Al hacer clic en registrarse, aceptas nuestros Términos de servicio y Política de privacidad",
                     size=10,
                     text_align=ft.TextAlign.CENTER,
+                    color="black"
                 ),
                 mensaje,
                 ft.ElevatedButton("Registrarse", bgcolor="black", color="white", on_click=registrar_click),
@@ -122,41 +154,43 @@ def main(page: ft.Page):
             alignment=ft.MainAxisAlignment.CENTER,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         )
-        page.clean()
-        page.add(contenido)
-    # Pantalla 2: Mensaje de éxito
-    def mostrar_exito():
+
+        self.page.clean()
+        self.page.add(contenido)
+
+    def mostrar_exito(self):
         contenido = ft.Column(
             [
-                ft.Text("Excelente", size=22, weight=ft.FontWeight.BOLD),
-                ft.Text("Ya estás conectado conmigo, y juntos construiremos algo grande"),
-                ft.Image(src=os.path.join(IMG_PATH, "Imagen2.png"), width=120, height=120),
-                ft.ElevatedButton("¡Iniciar!", bgcolor="black", color="white", on_click=lambda e: mostrar_login_contra()),
+                ft.Text("Excelente", size=22, weight=ft.FontWeight.BOLD, color="black"),
+                ft.Text("Ya estás conectado conmigo, y juntos construiremos algo grande", color="black"),
+                ft.Image(src=os.path.join(self.img_path, "Imagen2.png"), width=120, height=120),
+                ft.ElevatedButton("¡Iniciar!", bgcolor="black", color="white", on_click=lambda e: self.mostrar_login_contra()),
             ],
             alignment=ft.MainAxisAlignment.CENTER,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         )
-        page.clean()
-        page.add(contenido)
-    # Pantalla 4: Login con contraseña
-    def mostrar_login_contra():
-        correo = ft.TextField(label="Correo electrónico", width=300)
-        contrasena = ft.TextField(label="Contraseña", password=True, can_reveal_password=True, width=300)
+
+        self.page.clean()
+        self.page.add(contenido)
+
+    def mostrar_login_contra(self):
+        correo = ft.TextField(label="Correo electrónico", width=300, color="black")
+        contrasena = ft.TextField(label="Contraseña", password=True, can_reveal_password=True, width=300, color="black")
         mensaje = ft.Text("", color="red")
 
         def login_click(e):
-            if validar_usuario(correo.value, contrasena.value):
+            if self.db.validar_usuario(correo.value, contrasena.value):
                 mensaje.value = "Inicio de sesión exitoso 🎉"
                 mensaje.color = "green"
             else:
                 mensaje.value = "Correo o contraseña incorrectos."
                 mensaje.color = "red"
-            page.update()
+            self.page.update()
 
         contenido = ft.Column(
             [
-                ft.Image(src=os.path.join(IMG_PATH, "Imagen4.png"), width=150, height=150),
-                ft.Text("Ingresa tu contraseña para registrarte en esta aplicación"),
+                ft.Image(src=os.path.join(self.img_path, "Imagen4.png"), width=150, height=150),
+                ft.Text("Ingresa tu contraseña para registrarte en esta aplicación", color="black"),
                 correo,
                 contrasena,
                 mensaje,
@@ -166,11 +200,16 @@ def main(page: ft.Page):
             alignment=ft.MainAxisAlignment.CENTER,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         )
-        page.clean()
-        page.add(contenido)
 
-    # Iniciar en pantalla de inicio
-    pantalla_inicio()
+        self.page.clean()
+        self.page.add(contenido)
 
-# Lanzar la app
+
+
+# Función principal
+
+def main(page: ft.Page):
+    HabitApp(page)
+
+
 ft.app(target=main)

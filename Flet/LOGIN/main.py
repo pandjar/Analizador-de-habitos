@@ -57,25 +57,21 @@ class HabitApp:
         self.page.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
-        # Configuración de ventana (simula celular)
+        # Configuración de ventana tipo celular
         self.page.window_width = 400
         self.page.window_height = 800
         self.page.window_resizable = False
 
         # Rutas
         self.img_path = os.path.join(os.path.dirname(__file__), "Imagenes")
+     
         self.db = DatabaseManager()
 
-        # Verificar ruta de imagen
-        print("Ruta de imagen esperada:", os.path.join(self.img_path, "Imagen1.png"))
-        print("Existe imagen:", os.path.exists(os.path.join(self.img_path, "Imagen1.png")))
 
         # Inicia en pantalla de inicio
         self.pantalla_inicio()
 
-    
-    # Pantallas
-
+    # Pantalla 1
     def pantalla_inicio(self):
         correo = ft.TextField(label="correo@electrónico.com", width=300, color="black")
         btn_continuar = ft.ElevatedButton(
@@ -92,7 +88,7 @@ class HabitApp:
                 ft.Image(src=os.path.join(self.img_path, "Imagen3.png"), width=150, height=150),
                 ft.Text("Crea una cuenta", size=20, weight=ft.FontWeight.BOLD, color="black"),
                 ft.Text(
-                    "Ingresa tu correo electrónico para registrarte en esta aplicación",
+                    "INICIO DE SESIÓN",
                     color="black"
                 ),
                 correo,
@@ -107,7 +103,11 @@ class HabitApp:
         self.page.clean()
         self.page.add(contenido)
 
+    # Pantalla 2: Registro
     def mostrar_registro(self):
+        def regresar_click(e):
+            self.pantalla_inicio()
+
         nombre = ft.TextField(label="Nombre(s)", width=300, color="black")
         apellido = ft.TextField(label="Apellidos", width=300, color="black")
         usuarioid = ft.TextField(label="Nombre de usuario (id)", width=300, color="black")
@@ -133,6 +133,10 @@ class HabitApp:
 
         contenido = ft.Column(
             [
+                ft.Row(
+                    [ft.TextButton("← Regresar", on_click=regresar_click, style=ft.ButtonStyle(color="black"))],
+                    alignment=ft.MainAxisAlignment.START
+                ),
                 ft.Text("Hola Soy Habit", size=20, weight=ft.FontWeight.BOLD, color="black"),
                 ft.Text("¿Listo para programar tus hábitos y optimizar tu día?", color="black"),
                 ft.Image(src=os.path.join(self.img_path, "Imagen1.png"), width=100, height=100),
@@ -158,9 +162,17 @@ class HabitApp:
         self.page.clean()
         self.page.add(contenido)
 
+    # Pantalla 3: Éxito
     def mostrar_exito(self):
+        def regresar_click(e):
+            self.mostrar_registro()
+
         contenido = ft.Column(
             [
+                ft.Row(
+                    [ft.TextButton("← Regresar", on_click=regresar_click, style=ft.ButtonStyle(color="black"))],
+                    alignment=ft.MainAxisAlignment.START
+                ),
                 ft.Text("Excelente", size=22, weight=ft.FontWeight.BOLD, color="black"),
                 ft.Text("Ya estás conectado conmigo, y juntos construiremos algo grande", color="black"),
                 ft.Image(src=os.path.join(self.img_path, "Imagen2.png"), width=120, height=120),
@@ -173,14 +185,18 @@ class HabitApp:
         self.page.clean()
         self.page.add(contenido)
 
+    # Pantalla 4: Login con contraseña
     def mostrar_login_contra(self):
+        def regresar_click(e):
+            self.pantalla_inicio()
+
         correo = ft.TextField(label="Correo electrónico", width=300, color="black")
         contrasena = ft.TextField(label="Contraseña", password=True, can_reveal_password=True, width=300, color="black")
         mensaje = ft.Text("", color="red")
 
         def login_click(e):
             if self.db.validar_usuario(correo.value, contrasena.value):
-                mensaje.value = "Inicio de sesión exitoso 🎉"
+                mensaje.value = "Inicio de sesión exitoso "
                 mensaje.color = "green"
             else:
                 mensaje.value = "Correo o contraseña incorrectos."
@@ -189,8 +205,12 @@ class HabitApp:
 
         contenido = ft.Column(
             [
+                ft.Row(
+                    [ft.TextButton("← Regresar", on_click=regresar_click, style=ft.ButtonStyle(color="black"))],
+                    alignment=ft.MainAxisAlignment.START
+                ),
                 ft.Image(src=os.path.join(self.img_path, "Imagen4.png"), width=150, height=150),
-                ft.Text("Ingresa tu contraseña para registrarte en esta aplicación", color="black"),
+                ft.Text("INICIO", color="black"),
                 correo,
                 contrasena,
                 mensaje,
